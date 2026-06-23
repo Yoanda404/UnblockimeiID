@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Devils Zone - Otomatis</title>
+    <!-- Library Gratis untuk Membaca Excel/CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+        header { background-color: #DA291C; color: white; padding: 15px 0; text-align: center; }
+        header h1 { margin: 0; font-size: 2rem; text-transform: uppercase; }
+        .hero { background: #000; color: #FBE122; text-align: center; padding: 20px; font-weight: bold; }
+        .container { max-width: 800px; margin: 20px auto; padding: 0 20px; }
+        h2 { border-bottom: 2px solid #DA291C; padding-bottom: 5px; color: #222; }
+        
+        /* Tempat Berita */
+        .news-card { background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .news-card h3 { margin-top: 0; color: #DA291C; }
+        .news-card .date { font-size: 0.8rem; color: #888; }
+        .read-btn { display: inline-block; background: #000; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-top: 10px; }
+        
+        /* Sistem Pop-up (Modal) Berita */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; max-width: 600px; width: 100%; max-height: 80%; overflow-y: auto; position: relative; }
+        .close-btn { background: #DA291C; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; float: right; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Red Devils Zone</h1>
+    </header>
+    
+    <div class="hero">Kabar Man United Langsung Dari Google Sheets Kamu!</div>
+
+    <div class="container">
+        <h2>Berita Terbaru</h2>
+        <!-- Berita dari Google Sheets akan muncul di sini secara otomatis -->
+        <div id="berita-container">Membuka berita terbaru...</div>
+    </div>
+
+    <!-- Struktur Pop-up Konten -->
+    <div id="newsModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">Tutup</button>
+            <h2 id="modalTitle" style="color: #DA291C; margin-top: 20px;"></h2>
+            <p id="modalDate" style="color: #888; font-size: 0.8rem;"></p>
+            <hr>
+            <p id="modalBody" style="line-height: 1.6; color: #333;"></p>
+        </div>
+    </div>
+
+    <script>
+        // MASUKKAN LINK CSV GOOGLE SHEETS KAMU DI BAWAH INI
+        const SHEET_URL = 'GANTI_DENGAN_LINK_CSV_KAMU_DI_SINI';
+
+        // Fungsi mengambil data dari Google Sheets
+        function ambilBerita() {
+            Papa.parse(SHEET_URL, {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    tampilkanBerita(results.data);
+                }
+            });
+        }
+
+        // Fungsi menampilkan daftar berita di halaman utama
+        let daftarBerita = [];
+        function tampilkanBerita(data) {
+            daftarBerita = data;
+            const container = document.getElementById('berita-container');
+            container.innerHTML = ''; // Hapus tulisan loading
+            
+            // Looping data dari bawah ke atas (agar berita terbaru di atas)
+            for (let i = data.length - 1; i >= 0; i--) {
+                if (!data[i].Judul) continue; // Skip jika baris kosong
+                
+                container.innerHTML += `
+                    <div class="news-card">
+                        <span class="date">${data[i].Tanggal}</span>
+                        <h3>${data[i].Judul}</h3>
+                        <p>${data[i].Ringkasan}</p>
+                        <div class="read-btn" onclick="bukaBerita(${i})">Baca Selengkapnya</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Fungsi membuka Pop-up berita lengkap
+        function bukaBerita(index) {
+            document.getElementById('modalTitle').innerText = daftarBerita[index].Judul;
+            document.getElementById('modalDate').innerText = daftarBerita[index].Tanggal;
+            document.getElementById('modalBody').innerText = daftarBerita[index].Isi;
+            document.getElementById('newsModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('newsModal').style.display = 'none';
+        }
+
+        // Jalankan fungsi saat web dibuka
+        ambilBerita();
+    </script>
+</body>
+</html>
